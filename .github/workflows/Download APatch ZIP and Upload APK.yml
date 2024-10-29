@@ -34,10 +34,21 @@ jobs:
           VERSION=$(basename "${APK_FILE}" | sed -E 's/^APatch_(.*)-release-signed\.apk$/\1/')  # Keep everything between 'APatch_' and '-release-signed.apk'
           echo "TAG=${VERSION}" >> $GITHUB_ENV  # Set the tag as an environment variable
 
+      - name: List All Existing Releases
+        run: |
+          echo "Current releases:"
+          gh release list  # List all existing releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+
       - name: Remove Old Releases
         run: |
           echo "Removing all existing releases except the new one..."
-          gh release list | awk '{print $1}' | grep -v "${{ env.TAG }}" | xargs -r gh release delete --yes  # List and delete all releases except the current one
+          # List all tags, filter out the current tag, and delete the rest
+          gh release list | awk '{print $1}' | grep -v "${{ env.TAG }}" | while read tag; do
+            echo "Deleting release with tag: $tag"
+            gh release delete "$tag" --yes  # Deletes the old release
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
 
