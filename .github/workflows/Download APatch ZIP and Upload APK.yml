@@ -1,0 +1,64 @@
+name: Download APatch ZIP and Upload APK
+
+on:
+  push:
+    branches: 
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  download-and-upload-apk:
+    runs-on: ubuntu-latest  # Specify the environment to run in
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Checks out the repository
+
+      - name: Download ZIP file
+        run: |
+          curl -L -o APatch.zip https://nightly.link/bmax121/APatch/workflows/build/main/APatch.zip
+
+      - name: Extract ZIP file
+        run: |
+          unzip APatch.zip -d APatch  # Extract to a folder named APatch
+
+      - name: Find APK file
+        id: find_apk
+        run: |
+          APK_FILE=$(find APatch -name 'APatch_*-release-signed.apk' | head -n 1)  # Finds the APK file
+          echo "APK_FILE=${APK_FILE}" >> $GITHUB_ENV  # Set APK_FILE as an environment variable
+
+      - name: Create Release Tag
+        id: create_tag
+        run: |
+          VERSION=$(basename "${APK_FILE}" | sed -E 's/APatch_([^-]+).*$/\1/')  # Extract the version from the APK file name
+          echo "TAG=${VERSION}" >> $GITHUB_ENV  # Set the tag as an environment variable
+
+      - name: Check for Existing Release
+        id: check_release
+        run: |
+          if gh release view ${{ env.TAG }} >/dev/null 2>&1; then
+            echo "Existing release found for tag: ${{ env.TAG }}"
+            echo "EXISTING_RELEASE=true" >> $GITHUB_ENV  # Set an environment variable to indicate the release exists
+          else
+            echo "No existing release found for tag: ${{ env.TAG }}"
+            echo "EXISTING_RELEASE=false" >> $GITHUB_ENV
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+
+      - name: Remove Old Release
+        if: env.EXISTING_RELEASE == 'true'  # Only run this step if an existing release is found
+        run: |
+          echo "Removing old release for tag: ${{ env.TAG }}"
+          gh release delete ${{ env.TAG }} --yes  # Deletes the old release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+
+      - name: Upload APK to Release
+        if: env.EXISTING_RELEASE == 'false'  # Only run this step if no existing release is found
+        uses: softprops/action-gh-release@v1  # GitHub Action for releasing
+        with:
+          tag: ${{ env.TAG }}  # Use the extracted version as the release tag
+          files: ${{ env.APK_FILE }}  # Reference the APK file found earlier
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
