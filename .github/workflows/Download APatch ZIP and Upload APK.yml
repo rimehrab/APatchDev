@@ -3,10 +3,10 @@ name: Download APatch ZIP and Upload APK
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main  # Trigger on push to the main branch
   schedule:
     - cron: "0 18 * * *"  # 12:00 AM Bangladesh Time
-  workflow_dispatch:  # Add this to enable manual runs
+  workflow_dispatch:  # Enables manual trigger
 
 jobs:
   download-and-upload-apk:
@@ -51,14 +51,15 @@ jobs:
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           gh release list | awk '{print $1}' | while read tag; do
-            gh release delete "$tag" --yes
+            if [ "$tag" != "${{ env.TAG }}" ]; then
+              gh release delete "$tag" --yes
+            fi
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK to Release
         if: ${{ env.RELEASE_EXISTS == 'false' }}
-        id: upload_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.TAG }}
@@ -67,14 +68,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Notify via Telegram
-  if: ${{ env.RELEASE_EXISTS == 'false' }}
-  run: |
-    RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-    MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}" | jq -sRr @uri)
-    curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-      -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-      -d text="$MESSAGE" \
-      -d parse_mode="HTML"
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Notify via Telegram
+        if: ${{ env.RELEASE_EXISTS == 'false' }}
+        run: |
+          RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
+          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}" | jq -sRr @uri)
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="$MESSAGE" \
+            -d parse_mode="HTML"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
