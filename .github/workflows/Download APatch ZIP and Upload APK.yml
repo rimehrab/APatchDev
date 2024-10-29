@@ -3,9 +3,10 @@ name: Download APatch ZIP and Upload APK
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on push to main branch
   schedule:
     - cron: "0 18 * * *"  # 12:00 AM Bangladesh Time
+  workflow_dispatch:  # Add this to enable manual runs
 
 jobs:
   download-and-upload-apk:
