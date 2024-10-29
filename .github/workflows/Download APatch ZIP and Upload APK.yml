@@ -58,7 +58,7 @@ jobs:
         if: env.EXISTING_RELEASE == 'false'  # Only run this step if no existing release is found
         uses: softprops/action-gh-release@v1  # GitHub Action for releasing
         with:
-          tag: ${{ env.TAG }}  # Use the extracted version as the release tag
+          tag_name: ${{ env.TAG }}  # Use the extracted version as the release tag
           files: ${{ env.APK_FILE }}  # Reference the APK file found earlier
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
