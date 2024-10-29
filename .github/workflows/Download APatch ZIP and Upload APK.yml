@@ -65,6 +65,6 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}  # Use the extracted version as the release tag
           files: ${{ env.APK_FILE }}  # Reference the APK file found earlier
-          release_name: "APatch Dev Build"  # Set the release title
+          release_name: "APatch Dev"  # Set the release title to "APatch Dev"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
