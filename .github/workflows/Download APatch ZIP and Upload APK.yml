@@ -34,10 +34,37 @@ jobs:
           VERSION=$(basename "${APK_FILE}" | sed -E 's/^APatch_(.*)-release-signed\.apk$/\1/')  # Keep everything between 'APatch_' and '-release-signed.apk'
           echo "TAG=${VERSION}" >> $GITHUB_ENV  # Set the tag as an environment variable
 
+      - name: Check for Existing Release
+        id: check_release
+        run: |
+          echo "Checking for existing releases..."
+          if gh release list | grep -q "${{ env.TAG }}"; then
+            echo "Release already exists for tag: ${{ env.TAG }}. Skipping release."
+            echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "No existing release found for tag: ${{ env.TAG }}. Proceeding with release."
+            echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+
+      - name: Remove Old Releases
+        if: ${{ env.RELEASE_EXISTS == 'false' }}  # Run this step only if no existing release is found
+        run: |
+          echo "Removing all existing releases..."
+          gh release list | awk '{print $1}' | while read tag; do
+            echo "Deleting release with tag: $tag"
+            gh release delete "$tag" --yes  # Deletes the old release
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+
       - name: Upload APK to Release
+        if: ${{ env.RELEASE_EXISTS == 'false' }}  # Run this step only if no existing release is found
         uses: softprops/action-gh-release@v1  # GitHub Action for releasing
         with:
           tag_name: ${{ env.TAG }}  # Use the extracted version as the release tag
           files: ${{ env.APK_FILE }}  # Reference the APK file found earlier
+          release_name: "APatch Dev Build"  # Set the release title
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
