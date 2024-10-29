@@ -3,9 +3,9 @@ name: Download APatch ZIP and Upload APK
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main
   schedule:
-    - cron: "0 18 * * *"  # Runs daily at 6:00 PM UTC (12:00 AM Bangladesh Time)
+    - cron: "0 18 * * *"  # 12:00 AM Bangladesh Time
 
 jobs:
   download-and-upload-apk:
@@ -44,7 +44,7 @@ jobs:
             echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Remove Old Releases
         if: ${{ env.RELEASE_EXISTS == 'false' }}
@@ -53,7 +53,7 @@ jobs:
             gh release delete "$tag" --yes
           done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK to Release
         if: ${{ env.RELEASE_EXISTS == 'false' }}
@@ -64,7 +64,7 @@ jobs:
           files: ${{ env.APK_FILE }}
           release_name: "APatch Dev"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify via Telegram
         if: ${{ env.RELEASE_EXISTS == 'false' }}
@@ -74,3 +74,5 @@ jobs:
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
