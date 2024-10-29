@@ -58,13 +58,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload APK to Release
+      - name: Create Release with Static Title
         if: ${{ env.RELEASE_EXISTS == 'false' }}
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.TAG }}
-          files: ${{ env.APK_FILE }}
-          release_name: "APatch Dev Build"  # Correct release name
+        run: |
+          gh release create ${{ env.TAG }} "${{ env.APK_FILE }}" \
+            --title "APatch Dev Build" \
+            --notes "Automatically generated release."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
