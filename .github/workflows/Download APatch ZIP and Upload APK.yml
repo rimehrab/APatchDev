@@ -57,6 +57,7 @@ jobs:
 
       - name: Upload APK to Release
         if: ${{ env.RELEASE_EXISTS == 'false' }}
+        id: upload_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.TAG }}
@@ -68,7 +69,8 @@ jobs:
       - name: Notify via Telegram
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
-          MESSAGE="🚀 New Release Created: APatch Dev\nTag: ${{ env.TAG }}"
+          RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
+          MESSAGE="🚀 New Release Created: APatch Dev\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}"
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE"
