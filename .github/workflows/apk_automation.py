@@ -1,14 +1,13 @@
 import os
 import requests
 import zipfile
-from datetime import datetime
 
-# Configuration
-BOT_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"  # Replace with your bot token
-CHAT_ID = "YOUR_CHAT_ID"  # Replace with your chat ID
-APK_DIRECTORY = "apk_directory"  # Local directory within GitHub runner workspace
+# Read secrets from environment variables
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+APK_DIRECTORY = "apk_directory"
 ZIP_URL = "https://nightly.link/bmax121/APatch/workflows/build/main/APatch.zip"
-ZIP_FILE_PATH = "APatch.zip"  # Zip file location
+ZIP_FILE_PATH = "APatch.zip"
 
 def send_message(text):
     """Send a message to Telegram chat."""
@@ -43,19 +42,17 @@ def extract_apk():
         apk_name = apk_files[0]
         apk_path = os.path.join(APK_DIRECTORY, apk_name)
 
-        # If APK already exists, skip extraction
         if os.path.exists(apk_path):
             print(f"APK '{apk_name}' already exists. Skipping extraction.")
             return None
 
-        # Extract new APK
         os.makedirs(APK_DIRECTORY, exist_ok=True)
         zip_ref.extract(apk_name, APK_DIRECTORY)
         print(f"Extracted APK: {apk_name}")
         return apk_name
 
 def cleanup():
-    """Delete the zip file."""
+    """Delete the downloaded zip file."""
     if os.path.exists(ZIP_FILE_PATH):
         os.remove(ZIP_FILE_PATH)
         print("Zip file deleted.")
