@@ -1,8 +1,13 @@
 name: APK Automation
 
 on:
-  push:
-    branches: [main]
+  # Schedule: uncomment and adjust cron expression
+  # schedule:
+  #   - cron: "0 0 * * *" # Runs daily at midnight UTC
+
+  # Push to a specific branch: uncomment and replace "main" with your branch name
+  # push:
+  #   branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -12,8 +17,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      - name: Install dependencies
+          python-version: '3.x'  # Adjust if needed
+      - name: Install dependencies (if using requirements.txt)
         run: pip install -r requirements.txt
       - name: Run APK automation script
         run: python apk_automation.py
+      - env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        name: Set secret environment variables
