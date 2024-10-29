@@ -64,7 +64,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           files: ${{ env.APK_FILE }}
-          release_name: "APatch Dev"
+          release_name: "APatch Dev Build"  # Updated static release title
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,7 +72,7 @@ jobs:
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}" | jq -sRr @uri)
+          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}" | jq -sRr @uri)
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d text="$MESSAGE" \
