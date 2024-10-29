@@ -2,28 +2,20 @@ name: APK Automation
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Run at 6:00 AM UTC every day
+    - cron: '0 6 * * *'  # Run daily at 6 AM UTC
 
 jobs:
-  apk_automation:
+  build-and-notify:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
-
-    - name: Run the APK automation script
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: python apk_automation.py
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests zipfile
+      - name: Run APK automation script
+        run: python apk_automation.py
