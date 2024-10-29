@@ -31,5 +31,7 @@ jobs:
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Print Environment Variables
+        run: env
       - name: Run APK automation script
         run: python apk_automation.py
