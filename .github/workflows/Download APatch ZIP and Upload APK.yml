@@ -64,7 +64,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           files: ${{ env.APK_FILE }}
-          release_name: "APatch Dev Build"  # Updated static release title
+          release_name: "APatch Dev Build"  # Sets the release title
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
