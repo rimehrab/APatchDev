@@ -5,8 +5,8 @@ on:
     branches:
       - main  # Trigger on push to the main branch
   schedule:
-  - cron: "0 18 * * *"  # 12:00 AM BD Time (UTC+6)
-  - cron: "0 6 * * *"   # 12:00 PM BD Time (UTC+6)
+    - cron: "0 18 * * *"  # 12:00 AM BD Time (UTC+6)
+    - cron: "0 6 * * *"   # 12:00 PM BD Time (UTC+6)
   workflow_dispatch:  # Enables manual trigger
 
 jobs:
