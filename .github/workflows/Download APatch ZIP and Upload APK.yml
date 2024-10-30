@@ -74,7 +74,8 @@ jobs:
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-          MESSAGE="🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}"
+          DOWNLOAD_LINK="https://github.com/rimehrab/APatchDev/releases/download/${{ env.TAG }}/$(basename "${{ env.APK_FILE }}")"
+          MESSAGE="🚀 <b>New Release Created:</b>\n\n<b>Release name:</b> APatch Dev Build\n\n<b>Tag:</b> <a href='${RELEASE_URL}'>${{ env.TAG }}</a>\n\n<b>Download:</b> <a href='${DOWNLOAD_LINK}'>APK File</a>"
           curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F document=@"${{ env.APK_FILE }}" \
                -F caption="$(echo -e "$MESSAGE")" \
