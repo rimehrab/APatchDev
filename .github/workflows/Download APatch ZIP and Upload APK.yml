@@ -28,7 +28,11 @@ jobs:
       - name: Find APK file
         id: find_apk
         run: |
-          APK_FILE=$(find APatch -name 'APatch_*-release-signed.apk' | head -n 1)
+          APK_FILE=$(find APatch -name 'APatch_*-release-signed.apk' | sort | tail -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "Error: No APK found." >&2
+            exit 1
+          fi
           echo "APK_FILE=${APK_FILE}" >> $GITHUB_ENV
 
       - name: Create Release Tag
@@ -53,7 +57,7 @@ jobs:
         run: |
           gh release list | awk '{print $1}' | while read tag; do
             if [ "$tag" != "${{ env.TAG }}" ]; then
-              gh release delete "$tag" --yes
+              gh release delete "$tag" --yes || echo "Failed to delete release: $tag"
             fi
           done
         env:
@@ -68,14 +72,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Notify via Telegram
+      - name: Send APK and Message via Telegram
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}" | jq -sRr @uri)
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="$MESSAGE" \
-            -d parse_mode="HTML"
+          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}")
+          curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -F document=@"${{ env.APK_FILE }}" \
+               -F caption="$MESSAGE" \
+               -F parse_mode="HTML" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
