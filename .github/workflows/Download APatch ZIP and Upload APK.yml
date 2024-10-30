@@ -5,7 +5,8 @@ on:
     branches:
       - main  # Trigger on push to the main branch
   schedule:
-    - cron: "0 18 * * *"  # 12:00 AM Bangladesh Time
+    - cron: "0 18 * * *"  # 12:00 AM BD Time (UTC+6)
+    - cron: "0 6 * * *"   # 12:00 PM BD Time (UTC+6)
   workflow_dispatch:  # Enables manual trigger
 
 jobs:
@@ -58,12 +59,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release with Static Title
+      - name: Upload APK to Release
         if: ${{ env.RELEASE_EXISTS == 'false' }}
-        run: |
-          gh release create ${{ env.TAG }} "${{ env.APK_FILE }}" \
-            --title "APatch Dev Build" \
-            --notes "Automatically generated release."
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          files: ${{ env.APK_FILE }}
+          release_name: "APatch Dev Build"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
