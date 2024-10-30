@@ -2,30 +2,28 @@ name: Download APatch ZIP and Upload APK
 
 on:
   push:
-    branches:
-      - main  # Trigger on push to the main branch
+    branches: [main]
   schedule:
     - cron: "0 18 * * *"  # 12:00 AM BD Time (UTC+6)
     - cron: "0 6 * * *"   # 12:00 PM BD Time (UTC+6)
-  workflow_dispatch:  # Enables manual trigger
+  workflow_dispatch:
 
 jobs:
   download-and-upload-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Download ZIP file
+      - name: Download ZIP File
         run: |
           curl -L -o APatch.zip https://nightly.link/bmax121/APatch/workflows/build/main/APatch.zip
 
-      - name: Extract ZIP file
-        run: |
-          unzip APatch.zip -d APatch
+      - name: Extract ZIP File
+        run: unzip APatch.zip -d APatch
 
-      - name: Find APK file
+      - name: Find APK File
         id: find_apk
         run: |
           APK_FILE=$(find APatch -name 'APatch_*-release-signed.apk' | sort | tail -n 1)
@@ -38,7 +36,7 @@ jobs:
       - name: Create Release Tag
         id: create_tag
         run: |
-          VERSION=$(basename "${APK_FILE}" | sed -E 's/^APatch_(.*)-release-signed\.apk$/\1/')
+          VERSION=$(basename "${{ env.APK_FILE }}" | sed -E 's/^APatch_(.*)-release-signed\.apk$/\1/')
           echo "TAG=${VERSION}" >> $GITHUB_ENV
 
       - name: Check for Existing Release
@@ -63,7 +61,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release with Static Title
+      - name: Create New Release
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           gh release create ${{ env.TAG }} "${{ env.APK_FILE }}" \
@@ -72,11 +70,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Send APK and Message via Telegram
+      - name: Send Telegram Notification
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-          MESSAGE=$(echo -e "🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}\nDownload: ${RELEASE_URL}")
+          MESSAGE="🚀 <b>New Release Created: APatch Dev Build</b>\nTag: <a href='${RELEASE_URL}'>${{ env.TAG }}</a>"
           curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F document=@"${{ env.APK_FILE }}" \
                -F caption="$MESSAGE" \
