@@ -74,10 +74,10 @@ jobs:
         if: ${{ env.RELEASE_EXISTS == 'false' }}
         run: |
           RELEASE_URL=$(gh release view ${{ env.TAG }} --json url -q ".url")
-          MESSAGE="🚀 <b>New Release Created: APatch Dev Build</b>\nTag: <a href='${RELEASE_URL}'>${{ env.TAG }}</a>"
+          MESSAGE="🚀 New Release Created: APatch Dev Build\nTag: ${{ env.TAG }}"
           curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F document=@"${{ env.APK_FILE }}" \
-               -F caption="$MESSAGE" \
+               -F caption="$(echo -e "$MESSAGE")" \
                -F parse_mode="HTML" \
                "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument"
         env:
